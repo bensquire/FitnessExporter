@@ -34,7 +34,7 @@ jobs:
 
           # Import certificate
           CERT_PATH=$RUNNER_TEMP/certificate.p12
-          echo "$CERTIFICATE_BASE64" | base64 --decode -o "$CERT_PATH"
+          echo "$CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
           security import "$CERT_PATH" -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 
@@ -55,8 +55,7 @@ jobs:
             -scheme HealthKitExporter \
             -destination "generic/platform=macOS" \
             -archivePath "$RUNNER_TEMP/HealthKitExporter.xcarchive" \
-            CODE_SIGN_IDENTITY="Developer ID Application" \
-            CODE_SIGN_STYLE=Automatic \
+            -allowProvisioningUpdates \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             ENABLE_HARDENED_RUNTIME=YES \
             | xcpretty

@@ -36,8 +36,6 @@ ifdef DEVELOPMENT_TEAM
 	xcodebuild -scheme $(SCHEME) \
 		-destination "generic/platform=macOS" \
 		-configuration Release \
-		CODE_SIGN_IDENTITY="Developer ID Application" \
-		CODE_SIGN_STYLE=Automatic \
 		DEVELOPMENT_TEAM=$(DEVELOPMENT_TEAM) \
 		ENABLE_HARDENED_RUNTIME=YES \
 		build
