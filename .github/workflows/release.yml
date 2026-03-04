@@ -21,10 +21,10 @@ jobs:
 
       - name: Import Developer ID Certificate
         env:
-          CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12 }}
-          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          CERTIFICATE_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
         run: |
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # Create ephemeral keychain
@@ -74,14 +74,6 @@ jobs:
             -exportOptionsPlist /tmp/ExportOptions.plist \
             | xcpretty
 
-      - name: Decode App Store Connect API Key
-        env:
-          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
-          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
-        run: |
-          mkdir -p ~/private_keys
-          echo "$ASC_API_KEY_P8" | base64 --decode > ~/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
-
       - name: Create DMG
         run: |
           create-dmg \
@@ -97,14 +89,13 @@ jobs:
 
       - name: Notarize DMG
         env:
-          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
-          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          NOTARY_APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
+          NOTARY_PASSWORD: ${{ secrets.NOTARY_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           xcrun notarytool submit "$RUNNER_TEMP/HealthKitExporter.dmg" \
-            --key ~/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 \
-            --key-id "$ASC_API_KEY_ID" \
-            --issuer "$ASC_API_ISSUER_ID" \
+            --apple-id "$NOTARY_APPLE_ID" \
+            --password "$NOTARY_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
             --wait
 
