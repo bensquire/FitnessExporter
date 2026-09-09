@@ -1,9 +1,10 @@
 import Foundation
 
-/// A Sendable-conforming error wrapper for crossing actor boundaries.
-struct ExportError: Error, Sendable {
+/// A value-type error that snapshots the underlying error's message so it can be
+/// stored, compared and displayed without holding on to the original error.
+struct ExportError: LocalizedError, Sendable {
     let message: String
-    var localizedDescription: String { message }
+    var errorDescription: String? { message }
 
     init(_ error: any Error) {
         self.message = error.localizedDescription

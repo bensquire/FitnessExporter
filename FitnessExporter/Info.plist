@@ -17,13 +17,15 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Fitness Exporter reads your step count and flights climbed to export health data.</string>
+	<string>Fitness Exporter reads your step count, flights climbed, weight, and energy burned to export health data.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Fitness Exporter does not write health data.</string>
 	<key>UIFileSharingEnabled</key>

@@ -22,6 +22,30 @@ struct ExportErrorTests {
         #expect(error.message == underlying.localizedDescription)
     }
 
+    @Test func messageSurvivesErasureToAnyError() {
+        // Arrange
+        let erased: any Error = ExportError(message: "disk full")
+
+        // Assert — must not fall back to the generic NSError description
+        #expect(erased.localizedDescription == "disk full")
+    }
+
+    @Test func wrapsFileExporterErrorWithReadableMessage() {
+        // Act
+        let error = ExportError(FileExporterError.writeFailed("no space left"))
+
+        // Assert
+        #expect(error.message == "Could not write export file: no space left")
+    }
+
+    @Test func wrapsHealthKitErrorWithReadableMessage() {
+        // Act
+        let error = ExportError(HealthKitError.queryFailed("timeout"))
+
+        // Assert
+        #expect(error.message == "HealthKit query failed: timeout")
+    }
+
     @Test func wrapsAnyError() {
         // Arrange
         struct CustomError: Error, LocalizedError {

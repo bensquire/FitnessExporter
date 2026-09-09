@@ -4,7 +4,7 @@ An iOS app that reads step count and flights climbed from HealthKit and exports 
 
 ## Features
 
-- Exports step count and flights climbed as daily totals
+- Exports daily step count, flights climbed, active and resting energy (kcal), and the most recent weigh-in (kg) per day
 - Two export modes: HTTP POST or local JSON files (one file per year, e.g. `2026.json`)
 - Preset lookback periods: 1 Day, 7 Days, 1 Month, 1 Year, All Time
 - Test export with mock data to verify your configuration
@@ -50,13 +50,19 @@ Each year's data is written to `<year>.json`:
   "exportedAt" : "2026-03-03T12:00:00Z",
   "data" : [
     {
+      "caloriesActive" : 512,
+      "caloriesResting" : 1650,
+      "caloriesTotal" : 2162,
       "date" : "2026-01-01",
       "flightsClimbed" : 4,
-      "stepCount" : 8542
+      "stepCount" : 8542,
+      "weightKg" : 78.4
     }
   ]
 }
 ```
+
+`weightKg` is omitted on days with no weigh-in. `caloriesTotal` is `caloriesActive + caloriesResting`. HTTP mode posts the bare `data` array.
 
 ## License
 

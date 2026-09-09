@@ -42,15 +42,6 @@ struct ExportServiceEncoderTests {
 }
 
 struct HTTPExporterTests {
-    private func makeConfig(url: String) -> ExportConfiguration {
-        ExportConfiguration(
-            mode: .http,
-            httpURL: url,
-            httpToken: "",
-            lookbackDays: 7
-        )
-    }
-
     @Test func throwsOnEmptyURL() async {
         // Arrange
         let exporter = HTTPExporter()

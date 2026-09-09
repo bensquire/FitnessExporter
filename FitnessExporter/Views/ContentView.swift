@@ -55,10 +55,13 @@ struct ContentView: View {
                             .autocapitalization(.none)
                             .keyboardType(.URL)
 
-                        if !viewModel.httpURL.isEmpty && URL(string: viewModel.httpURL)?.scheme != "https" {
-                            Label("URL must use HTTPS", systemImage: "exclamationmark.triangle.fill")
-                                .foregroundColor(.orange)
-                                .font(.caption)
+                        if !viewModel.httpURL.isEmpty,
+                           URL(string: viewModel.httpURL)?.scheme != "https" {
+                            Label(
+                                "URL must use HTTPS", systemImage: "exclamationmark.triangle.fill"
+                            )
+                            .foregroundColor(.orange)
+                            .font(.caption)
                         }
 
                         SecureField("Bearer Token (optional)", text: $viewModel.httpToken)
@@ -68,13 +71,18 @@ struct ContentView: View {
                 // MARK: File Settings
                 if viewModel.currentMode == .file {
                     Section {
-                        Text(verbatim: "Files saved to app Documents folder as \(Calendar.current.component(.year, from: Date())).json")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        Text(
+                            verbatim:
+                                "Files saved to app Documents folder as \(Calendar.current.component(.year, from: Date())).json"
+                        )
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                     } header: {
                         Text("File Settings")
                     } footer: {
-                        Text("Access exported files via the Files app → On My iPhone → HealthKit Exporter.")
+                        Text(
+                            "Access exported files via the Files app → On My iPhone → Fitness Exporter."
+                        )
                     }
                 }
 
@@ -120,7 +128,7 @@ struct ContentView: View {
                     Text("Test Export")
                 }
             }
-            .navigationTitle("HealthKit Exporter")
+            .navigationTitle("Fitness Exporter")
         }
     }
 }

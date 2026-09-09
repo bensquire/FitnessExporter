@@ -50,11 +50,6 @@ final class AppViewModel: ObservableObject {
 
     // MARK: - Authorization
     func requestAuthorization() async {
-        guard HealthKitService.isAvailable else {
-            authorizationError = "HealthKit is not available on this device."
-            return
-        }
-
         do {
             try await healthKitService.requestAuthorization()
             isAuthorized = true
@@ -73,15 +68,17 @@ final class AppViewModel: ObservableObject {
 
         defer { isExporting = false }
 
-        guard HealthKitService.isAvailable else {
-            statusMessage = "HealthKit unavailable"
-            lastExportResult = .failure(ExportError(message: "HealthKit is not available"))
-            return
-        }
-
         let config = currentConfig
 
         do {
+            // HealthKit only prompts for types the user hasn't decided on yet, so this
+            // picks up newly added types for existing users and is otherwise a no-op.
+            if !isAuthorized {
+                try await healthKitService.requestAuthorization()
+                isAuthorized = true
+                authorizationError = nil
+            }
+
             let data = try await healthKitService.fetchHealthData(lookbackDays: config.lookbackDays)
             let result = await exportService.export(data: data, config: config)
 
@@ -122,7 +119,10 @@ final class AppViewModel: ObservableObject {
             return HealthDataPoint(
                 date: HealthDataPoint.dateFormatter.string(from: date),
                 stepCount: Int.random(in: 4000...12000),
-                flightsClimbed: Int.random(in: 0...20)
+                flightsClimbed: Int.random(in: 0...20),
+                weightKg: HealthDataPoint.roundedWeight(Double.random(in: 60...100)),
+                caloriesActive: Int.random(in: 200...900),
+                caloriesResting: Int.random(in: 1400...2000)
             )
         }
 

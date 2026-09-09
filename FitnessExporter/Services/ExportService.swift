@@ -11,6 +11,12 @@ actor ExportService {
         return encoder
     }
 
+    static func makeDecoder() -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }
+
     func export(data: [HealthDataPoint], config: ExportConfiguration) async -> ExportResult {
         do {
             let count: Int

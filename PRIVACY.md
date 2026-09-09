@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Fitness Exporter** — Last updated: 6 March 2026
+**Fitness Exporter** — Last updated: 9 September 2026
 
 ## What data the app accesses
 
@@ -8,6 +8,9 @@ Fitness Exporter reads the following data from Apple HealthKit:
 
 - Daily step count
 - Daily flights climbed
+- Body weight (most recent weigh-in per day)
+- Active energy burned
+- Resting energy burned
 
 No other health or personal data is accessed.
 
