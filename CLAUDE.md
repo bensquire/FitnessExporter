@@ -9,8 +9,11 @@ A `Makefile` wraps the common commands:
 ```bash
 make build    # debug build for iOS (generic device)
 make test     # run unit tests on iOS Simulator
+make icon     # regenerate the app icon from icon/makeicon.swift
 make clean    # remove build/ and clean Xcode build products
 ```
+
+The app icon is generated, not drawn by hand: `icon/makeicon.swift` renders a 1024 px opaque PNG straight into `Assets.xcassets/AppIcon.appiconset/icon.png` plus a 256 px `icon/preview.png`. It follows the same flat-tile / white-glyph / soft-shadow style as the macOS apps in `../../macos/` (PaperDrop, PaperPress, Prospect). Edit the script and run `make icon`, which also runs oxipng (brew install oxipng) on the output; never edit the PNG.
 
 Raw xcodebuild equivalents:
 ```bash

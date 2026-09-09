@@ -8,7 +8,7 @@ DEVELOPMENT_TEAM ?=
 DESTINATION ?= generic/platform=iOS
 SIM_DESTINATION ?= platform=iOS Simulator,OS=latest,name=iPhone 17 Pro
 
-.PHONY: generate build test lint clean
+.PHONY: generate build test lint icon clean
 
 generate:
 	xcodegen generate --spec project.yml
@@ -25,6 +25,13 @@ test: generate
 
 lint:
 	swiftlint lint --strict
+
+ICON_PNGS = FitnessExporter/Assets.xcassets/AppIcon.appiconset/icon.png icon/preview.png
+
+icon:
+	swift icon/makeicon.swift
+	@command -v oxipng >/dev/null && oxipng -o max --zopfli --strip safe $(ICON_PNGS) \
+		|| echo "oxipng not installed (brew install oxipng); icon left unoptimised"
 
 clean:
 	rm -rf $(BUILD_DIR)
