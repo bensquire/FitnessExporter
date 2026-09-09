@@ -28,6 +28,7 @@ jobs:
 
       - name: Run Tests
         run: |
+          set -o pipefail
           xcodebuild -scheme FitnessExporter \
             -destination "platform=iOS Simulator,OS=latest,name=iPhone 16" \
             test CODE_SIGNING_ALLOWED=NO \
