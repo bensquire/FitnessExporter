@@ -1,5 +1,4 @@
 import Foundation
-import HealthKit
 import SwiftUI
 
 @MainActor
@@ -12,7 +11,9 @@ final class AppViewModel: ObservableObject {
         return date
     }
     @Published var isExporting = false
-    @Published var isAuthorized = false
+    /// Whether the Health permission sheet has been shown for every type the app
+    /// reads. Not whether access was granted: HealthKit never reveals a denied read.
+    @Published var hasRequestedHealthAccess = false
     @Published var authorizationError: String?
     @Published var statusMessage = "Not exported yet"
 
@@ -22,13 +23,21 @@ final class AppViewModel: ObservableObject {
     @AppStorage("lookbackDays") var lookbackDaysRaw: Int = LookbackPeriod.oneYear.rawValue
 
     // MARK: - Keychain-backed Token
-    @Published var httpToken: String = KeychainService.load(key: "httpToken") {
-        didSet { KeychainService.save(key: "httpToken", value: httpToken) }
+    private static let tokenKey = "httpToken"
+    @Published var httpToken: String = KeychainService().load(key: AppViewModel.tokenKey) {
+        didSet { saveToken() }
     }
+    /// Set when the last edit to the token couldn't be written to the Keychain.
+    @Published var tokenSaveError: String?
 
     // MARK: - Services
+    private let keychain = KeychainService()
     private let healthKitService = HealthKitService()
     private let exportService = ExportService()
+    /// HealthKit only prompts for types the user hasn't decided on yet, so asking once
+    /// per launch picks up newly added types for existing users and is otherwise a no-op.
+    /// /documentation/healthkit/hkhealthstore/requestauthorization(toshare:read:completion:)
+    private var requestedHealthAccessThisLaunch = false
 
     // MARK: - Computed
     var currentMode: ExportMode {
@@ -37,6 +46,12 @@ final class AppViewModel: ObservableObject {
 
     var currentLookback: LookbackPeriod {
         LookbackPeriod(rawValue: lookbackDaysRaw) ?? .oneYear
+    }
+
+    /// Whether the settings screen should warn that the exporter will refuse the URL.
+    /// Asks the exporter's own check, so the warning and the export can't disagree.
+    var httpURLWillBeRefused: Bool {
+        !httpURL.isEmpty && (try? HTTPExporter.endpoint(from: httpURL)) == nil
     }
 
     var currentConfig: ExportConfiguration {
@@ -48,16 +63,37 @@ final class AppViewModel: ObservableObject {
         )
     }
 
+    // MARK: - Token
+    private func saveToken() {
+        do {
+            try keychain.save(key: Self.tokenKey, value: httpToken)
+            tokenSaveError = nil
+        } catch {
+            tokenSaveError =
+                "The token wasn't saved to the Keychain (\(error.localizedDescription)). "
+                + "It will be used until the app quits."
+        }
+    }
+
     // MARK: - Authorization
+    func refreshHealthAccessState() async {
+        hasRequestedHealthAccess = await healthKitService.hasRequestedAuthorization()
+    }
+
     func requestAuthorization() async {
         do {
-            try await healthKitService.requestAuthorization()
-            isAuthorized = true
-            authorizationError = nil
+            try await askForHealthAccess()
         } catch {
             authorizationError = error.localizedDescription
-            isAuthorized = false
         }
+    }
+
+    /// Shows HealthKit's sheet for any type not decided yet, and records that it was asked.
+    private func askForHealthAccess() async throws {
+        try await healthKitService.requestAuthorization()
+        requestedHealthAccessThisLaunch = true
+        hasRequestedHealthAccess = true
+        authorizationError = nil
     }
 
     // MARK: - Export
@@ -71,12 +107,8 @@ final class AppViewModel: ObservableObject {
         let config = currentConfig
 
         do {
-            // HealthKit only prompts for types the user hasn't decided on yet, so this
-            // picks up newly added types for existing users and is otherwise a no-op.
-            if !isAuthorized {
-                try await healthKitService.requestAuthorization()
-                isAuthorized = true
-                authorizationError = nil
+            if !requestedHealthAccessThisLaunch {
+                try await askForHealthAccess()
             }
 
             let data = try await healthKitService.fetchHealthData(lookbackDays: config.lookbackDays)
@@ -95,7 +127,8 @@ final class AppViewModel: ObservableObject {
         } catch {
             let exportError = ExportError(error)
             lastExportResult = .failure(exportError)
-            statusMessage = "Fetch failed"
+            statusMessage =
+                (error as? HealthKitError) == .noData ? "No health data found" : "Couldn't read Health data"
             #if DEBUG
                 print("HealthKit fetch error: \(error.localizedDescription)")
             #endif

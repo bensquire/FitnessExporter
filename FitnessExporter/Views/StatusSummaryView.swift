@@ -33,7 +33,7 @@ struct StatusSummaryView: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: resultIcon)
-                .foregroundColor(resultColor)
+                .foregroundStyle(resultColor)
                 .font(.title2)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -43,8 +43,14 @@ struct StatusSummaryView: View {
 
                 Text("Last: \(lastExportText)")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
+
+                if case .failure(let error) = viewModel.lastExportResult {
+                    Text(error.message)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Spacer()

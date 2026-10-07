@@ -1,6 +1,6 @@
 # Fitness Exporter
 
-An iOS app that reads step count and flights climbed from HealthKit and exports the data to an HTTP endpoint or local JSON files.
+An iOS app that reads daily steps, flights climbed, active and resting energy, and weight from Apple Health and exports them to an HTTP endpoint or local JSON files.
 
 ## Features
 
@@ -26,8 +26,8 @@ brew install xcodegen
 ### Setup
 
 ```bash
-git clone git@github.com:bensquire/healthkit-exporter.git
-cd healthkit-exporter
+git clone git@github.com:bensquire/FitnessExporter.git
+cd FitnessExporter
 xcodegen generate
 open FitnessExporter.xcodeproj
 ```
@@ -37,6 +37,8 @@ open FitnessExporter.xcodeproj
 ```bash
 make build   # build (unsigned, for local testing)
 make test    # run unit tests
+make lint    # swift format lint --strict, as CI and the pre-commit hook run it
+make format  # swift format in place
 make clean   # clean build artefacts
 ```
 

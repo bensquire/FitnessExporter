@@ -3,7 +3,7 @@ import Testing
 
 struct ExportErrorTests {
     @Test func messageFromString() {
-        // Arrange
+        // Act
         let error = ExportError(message: "Something went wrong")
 
         // Assert
@@ -26,8 +26,11 @@ struct ExportErrorTests {
         // Arrange
         let erased: any Error = ExportError(message: "disk full")
 
+        // Act
+        let description = erased.localizedDescription
+
         // Assert — must not fall back to the generic NSError description
-        #expect(erased.localizedDescription == "disk full")
+        #expect(description == "disk full")
     }
 
     @Test func wrapsFileExporterErrorWithReadableMessage() {
@@ -35,7 +38,7 @@ struct ExportErrorTests {
         let error = ExportError(FileExporterError.writeFailed("no space left"))
 
         // Assert
-        #expect(error.message == "Could not write export file: no space left")
+        #expect(error.message == "Couldn't save the export file: no space left. Try exporting again.")
     }
 
     @Test func wrapsHealthKitErrorWithReadableMessage() {
@@ -43,7 +46,7 @@ struct ExportErrorTests {
         let error = ExportError(HealthKitError.queryFailed("timeout"))
 
         // Assert
-        #expect(error.message == "HealthKit query failed: timeout")
+        #expect(error.message == "Couldn't read from Health: timeout. Try exporting again.")
     }
 
     @Test func wrapsAnyError() {

@@ -1,8 +1,13 @@
 import Foundation
 
 actor ExportService {
-    private let httpExporter = HTTPExporter()
-    private let fileExporter = FileExporter()
+    private let httpExporter: HTTPExporter
+    private let fileExporter: FileExporter
+
+    init(httpExporter: HTTPExporter = HTTPExporter(), fileExporter: FileExporter = FileExporter()) {
+        self.httpExporter = httpExporter
+        self.fileExporter = fileExporter
+    }
 
     static func makeEncoder() -> JSONEncoder {
         let encoder = JSONEncoder()

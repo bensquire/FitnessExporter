@@ -18,22 +18,28 @@ struct ContentView: View {
                     .disabled(viewModel.isExporting)
                 }
 
-                // MARK: HealthKit Authorization
-                Section("HealthKit") {
-                    if viewModel.isAuthorized {
-                        Label("Authorized", systemImage: "checkmark.shield.fill")
-                            .foregroundColor(.green)
+                // MARK: Health Access
+                Section {
+                    if viewModel.hasRequestedHealthAccess {
+                        Label("Access requested", systemImage: "checkmark.shield")
                     } else {
                         if let error = viewModel.authorizationError {
                             Text(error)
-                                .foregroundColor(.red)
+                                .foregroundStyle(.red)
                                 .font(.caption)
                         }
-                        Button("Authorize HealthKit Access") {
+                        Button("Request Health Access") {
                             Task { await viewModel.requestAuthorization() }
                         }
                         .buttonStyle(.borderedProminent)
                     }
+                } header: {
+                    Text("Health")
+                } footer: {
+                    Text(
+                        "Health doesn't tell apps which data you let them read. To check or change it, "
+                            + "look for Fitness Exporter in Settings or the Health app."
+                    )
                 }
 
                 // MARK: Export Mode
@@ -47,37 +53,42 @@ struct ContentView: View {
                     .pickerStyle(.segmented)
                 }
 
-                // MARK: HTTP Settings
-                if viewModel.currentMode == .http {
+                // MARK: Mode Settings
+                switch viewModel.currentMode {
+                case .http:
                     Section("HTTP Settings") {
                         TextField("Endpoint URL", text: $viewModel.httpURL)
                             .textContentType(.URL)
-                            .autocapitalization(.none)
+                            .textInputAutocapitalization(.never)
                             .keyboardType(.URL)
 
-                        if !viewModel.httpURL.isEmpty,
-                            URL(string: viewModel.httpURL)?.scheme != "https"
-                        {
+                        if viewModel.httpURLWillBeRefused {
                             Label(
                                 "URL must use HTTPS", systemImage: "exclamationmark.triangle.fill"
                             )
-                            .foregroundColor(.orange)
+                            .foregroundStyle(.orange)
                             .font(.caption)
                         }
 
                         SecureField("Bearer Token (optional)", text: $viewModel.httpToken)
-                    }
-                }
 
-                // MARK: File Settings
-                if viewModel.currentMode == .file {
+                        if let error = viewModel.tokenSaveError {
+                            Label(error, systemImage: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                                .font(.caption)
+                        }
+                    }
+
+                case .file:
                     Section {
                         Text(
                             verbatim:
-                                "Files saved to app Documents folder as \(Calendar.current.component(.year, from: Date())).json"
+                                "Each year is saved as its own file, such as "
+                                + "\(Calendar.current.component(.year, from: Date())).json, "
+                                + "in the app's Documents folder."
                         )
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     } header: {
                         Text("File Settings")
                     } footer: {
@@ -110,12 +121,12 @@ struct ContentView: View {
                         if let result = viewModel.testExportResult {
                             switch result {
                             case .success(_, let count):
-                                Label("\(count) records sent", systemImage: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
+                                Label("\(count) days exported", systemImage: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
                                     .font(.caption)
                             case .failure(let error):
                                 Label(error.message, systemImage: "xmark.circle.fill")
-                                    .foregroundColor(.red)
+                                    .foregroundStyle(.red)
                                     .font(.caption)
                                     .lineLimit(2)
                             }
@@ -124,12 +135,13 @@ struct ContentView: View {
 
                     Text("Sends 7 days of randomized mock data using your current export settings.")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 } header: {
                     Text("Test Export")
                 }
             }
             .navigationTitle("Fitness Exporter")
+            .task { await viewModel.refreshHealthAccessState() }
         }
     }
 }

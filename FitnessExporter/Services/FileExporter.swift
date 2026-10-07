@@ -9,22 +9,23 @@ enum FileExporterError: LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .readFailed(let detail):
-            return "Could not read existing export file: \(detail)"
+            return "Couldn't read the existing export file: \(detail). "
+                + "It was left as it is; try exporting again."
         case .existingFileCorrupt(let fileName):
             return
                 "Existing file \(fileName) is not a valid export and was left untouched. Move or delete it and try again."
         case .encodingFailed(let detail):
-            return "Could not encode export data: \(detail)"
+            return "Couldn't prepare the data for export: \(detail)"
         case .writeFailed(let detail):
-            return "Could not write export file: \(detail)"
+            return "Couldn't save the export file: \(detail). Try exporting again."
         }
     }
 }
 
 struct FileExporter: Sendable {
-    /// Returns the app's Documents directory URL.
-    static let documentsDirectory: URL =
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+    /// The app's Documents directory, inside its sandbox.
+    /// /documentation/foundation/url/documentsdirectory
+    static let documentsDirectory = URL.documentsDirectory
 
     /// Directory that per-year JSON files are written to. Injectable for tests.
     let directoryURL: URL
@@ -38,7 +39,6 @@ struct FileExporter: Sendable {
     /// days in the file; days only in the file are preserved.
     /// Returns the number of points from `data` that were exported.
     func export(data: [HealthDataPoint], config: ExportConfiguration) async throws -> Int {
-        // Group data by year
         let byYear = Dictionary(grouping: data) { point -> Int in
             let parts = point.date.split(separator: "-")
             return Int(parts.first ?? "0") ?? 0

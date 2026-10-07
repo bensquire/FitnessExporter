@@ -2,13 +2,16 @@ import Foundation
 import Testing
 
 struct HealthDataPointTests {
-    @Test func codableRoundTrip() throws {
-        // Arrange
-        let point = HealthDataPoint(date: "2026-03-03", stepCount: 8_000, flightsClimbed: 5)
-
+    @Test(arguments: [
+        HealthDataPoint(date: "2026-03-03", stepCount: 8_000, flightsClimbed: 5),
+        HealthDataPoint(
+            date: "2026-03-03", stepCount: 8_000, flightsClimbed: 5,
+            weightKg: 78.4, caloriesActive: 512, caloriesResting: 1_650),
+    ])
+    func roundTripsThroughTheExportJSON(point: HealthDataPoint) throws {
         // Act
-        let data = try JSONEncoder().encode(point)
-        let decoded = try JSONDecoder().decode(HealthDataPoint.self, from: data)
+        let data = try ExportService.makeEncoder().encode(point)
+        let decoded = try ExportService.makeDecoder().decode(HealthDataPoint.self, from: data)
 
         // Assert
         #expect(decoded == point)
@@ -19,7 +22,7 @@ struct HealthDataPointTests {
         let point = HealthDataPoint(date: "2026-03-03", stepCount: 8_000, flightsClimbed: 5)
 
         // Act
-        let data = try JSONEncoder().encode(point)
+        let data = try ExportService.makeEncoder().encode(point)
         let json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
 
         // Assert
@@ -48,7 +51,6 @@ struct HealthDataPointTests {
         #expect(json["caloriesActive"] as? Int == 512)
         #expect(json["caloriesResting"] as? Int == 1_650)
         #expect(json["caloriesTotal"] as? Int == 2_162)
-        #expect(point.caloriesTotal == point.caloriesActive + point.caloriesResting)
     }
 
     @Test func omitsWeightKeyWhenNil() throws {
@@ -56,11 +58,22 @@ struct HealthDataPointTests {
         let point = HealthDataPoint(date: "2026-03-03", stepCount: 1, flightsClimbed: 0)
 
         // Act
-        let data = try JSONEncoder().encode(point)
+        let data = try ExportService.makeEncoder().encode(point)
         let json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
 
         // Assert
-        #expect(json["weightKg"] == nil)
+        #expect(json.keys.contains("weightKg") == false)
+    }
+
+    @Test func encodesZeroEnergyForADayWithNoneRecorded() throws {
+        // Arrange
+        let point = HealthDataPoint(date: "2026-03-03", stepCount: 1, flightsClimbed: 0)
+
+        // Act
+        let data = try ExportService.makeEncoder().encode(point)
+        let json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+
+        // Assert
         #expect(json["caloriesActive"] as? Int == 0)
         #expect(json["caloriesResting"] as? Int == 0)
         #expect(json["caloriesTotal"] as? Int == 0)
@@ -74,7 +87,7 @@ struct HealthDataPointTests {
             """.utf8)
 
         // Act
-        let point = try JSONDecoder().decode(HealthDataPoint.self, from: legacy)
+        let point = try ExportService.makeDecoder().decode(HealthDataPoint.self, from: legacy)
 
         // Assert
         #expect(point == HealthDataPoint(date: "2026-01-01", stepCount: 8_542, flightsClimbed: 4))
@@ -92,40 +105,35 @@ struct HealthDataPointTests {
             """.utf8)
 
         // Act
-        let point = try JSONDecoder().decode(HealthDataPoint.self, from: json)
+        let point = try ExportService.makeDecoder().decode(HealthDataPoint.self, from: json)
 
         // Assert
         #expect(point.caloriesTotal == 300)
     }
 
-    @Test func fullRoundTripPreservesAllFields() throws {
-        // Arrange
-        let point = HealthDataPoint(
-            date: "2026-03-03",
-            stepCount: 8_000,
-            flightsClimbed: 5,
-            weightKg: 78.4,
-            caloriesActive: 512,
-            caloriesResting: 1_650
-        )
-
-        // Act
-        let data = try JSONEncoder().encode(point)
-        let decoded = try JSONDecoder().decode(HealthDataPoint.self, from: data)
-
+    @Test func pointsWithTheSameFieldsAreEqual() {
         // Assert
-        #expect(decoded == point)
+        #expect(
+            HealthDataPoint(date: "2026-01-01", stepCount: 100, flightsClimbed: 2)
+                == HealthDataPoint(date: "2026-01-01", stepCount: 100, flightsClimbed: 2))
     }
 
-    @Test func equalityByAllFields() {
+    /// The merge and request tests compare points with `==`, so a field it ignored
+    /// would let a wrong merge pass. Each argument changes one field.
+    @Test(arguments: [
+        HealthDataPoint(date: "2026-01-02", stepCount: 100, flightsClimbed: 2),
+        HealthDataPoint(date: "2026-01-01", stepCount: 999, flightsClimbed: 2),
+        HealthDataPoint(date: "2026-01-01", stepCount: 100, flightsClimbed: 9),
+        HealthDataPoint(date: "2026-01-01", stepCount: 100, flightsClimbed: 2, weightKg: 70),
+        HealthDataPoint(date: "2026-01-01", stepCount: 100, flightsClimbed: 2, caloriesActive: 1),
+        HealthDataPoint(date: "2026-01-01", stepCount: 100, flightsClimbed: 2, caloriesResting: 1),
+    ])
+    func aChangeToAnyFieldMakesPointsDifferent(changed: HealthDataPoint) {
         // Arrange
-        let a = HealthDataPoint(date: "2026-01-01", stepCount: 100, flightsClimbed: 2)
-        let b = HealthDataPoint(date: "2026-01-01", stepCount: 100, flightsClimbed: 2)
-        let c = HealthDataPoint(date: "2026-01-01", stepCount: 999, flightsClimbed: 2)
+        let point = HealthDataPoint(date: "2026-01-01", stepCount: 100, flightsClimbed: 2)
 
         // Assert
-        #expect(a == b)
-        #expect(a != c)
+        #expect(point != changed)
     }
 }
 

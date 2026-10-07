@@ -30,7 +30,7 @@ enum LookbackPeriod: Int, CaseIterable, Codable, Sendable {
     }
 }
 
-/// All user-configurable settings as a Sendable value type.
+/// The settings, snapshotted on the main actor before an export crosses into the services.
 struct ExportConfiguration: Sendable {
     var mode: ExportMode
     var httpURL: String
