@@ -1,5 +1,5 @@
-import Testing
 import Foundation
+import Testing
 
 struct HealthDataPointTests {
     @Test func codableRoundTrip() throws {
@@ -68,9 +68,10 @@ struct HealthDataPointTests {
 
     @Test func decodesLegacyJSONWithoutNewerFields() throws {
         // Arrange — shape written by v1.0
-        let legacy = Data("""
-        {"date":"2026-01-01","flightsClimbed":4,"stepCount":8542}
-        """.utf8)
+        let legacy = Data(
+            """
+            {"date":"2026-01-01","flightsClimbed":4,"stepCount":8542}
+            """.utf8)
 
         // Act
         let point = try JSONDecoder().decode(HealthDataPoint.self, from: legacy)
@@ -84,10 +85,11 @@ struct HealthDataPointTests {
 
     @Test func ignoresTotalEnergyOnDecode() throws {
         // Arrange — a stale or tampered total must not survive a round trip
-        let json = Data("""
-        {"date":"2026-01-01","flightsClimbed":0,"stepCount":0,
-         "caloriesActive":100,"caloriesResting":200,"caloriesTotal":999}
-        """.utf8)
+        let json = Data(
+            """
+            {"date":"2026-01-01","flightsClimbed":0,"stepCount":0,
+             "caloriesActive":100,"caloriesResting":200,"caloriesTotal":999}
+            """.utf8)
 
         // Act
         let point = try JSONDecoder().decode(HealthDataPoint.self, from: json)

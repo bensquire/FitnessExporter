@@ -1,5 +1,5 @@
-import Testing
 import Foundation
+import Testing
 
 struct ExportServiceEncoderTests {
     @Test func outputFormattingIsPrettyPrintedAndSortedKeys() {

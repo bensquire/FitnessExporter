@@ -1,6 +1,6 @@
 import Foundation
-import SwiftUI
 import HealthKit
+import SwiftUI
 
 @MainActor
 final class AppViewModel: ObservableObject {
@@ -89,7 +89,7 @@ final class AppViewModel: ObservableObject {
             case .failure(let error):
                 statusMessage = "Export failed"
                 #if DEBUG
-                print("Export error: \(error.message)")
+                    print("Export error: \(error.message)")
                 #endif
             }
         } catch {
@@ -97,7 +97,7 @@ final class AppViewModel: ObservableObject {
             lastExportResult = .failure(exportError)
             statusMessage = "Fetch failed"
             #if DEBUG
-            print("HealthKit fetch error: \(error.localizedDescription)")
+                print("HealthKit fetch error: \(error.localizedDescription)")
             #endif
         }
     }

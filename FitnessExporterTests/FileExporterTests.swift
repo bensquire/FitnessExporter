@@ -1,5 +1,5 @@
-import Testing
 import Foundation
+import Testing
 
 /// Each test gets a fresh temp directory; Swift Testing instantiates the suite per test.
 final class FileExporterTests {
@@ -61,24 +61,26 @@ final class FileExporterTests {
         // Assert — old day kept, overlapping day replaced, new day added
         #expect(count == 2)
         let merged = try readYear(2026)
-        #expect(merged.data == [
-            HealthDataPoint(date: "2026-01-01", stepCount: 1_000, flightsClimbed: 1),
-            HealthDataPoint(date: "2026-01-02", stepCount: 2_500, flightsClimbed: 3),
-            HealthDataPoint(date: "2026-01-03", stepCount: 3_000, flightsClimbed: 4),
-        ])
+        #expect(
+            merged.data == [
+                HealthDataPoint(date: "2026-01-01", stepCount: 1_000, flightsClimbed: 1),
+                HealthDataPoint(date: "2026-01-02", stepCount: 2_500, flightsClimbed: 3),
+                HealthDataPoint(date: "2026-01-03", stepCount: 3_000, flightsClimbed: 4),
+            ])
     }
 
     @Test func mergesIntoLegacyFileWrittenBeforeNewerFieldsExisted() async throws {
         // Arrange — a v1.0 year file with only the original three fields
-        let legacy = Data("""
-        {
-          "year" : 2026,
-          "exportedAt" : "2026-01-03T00:00:00Z",
-          "data" : [
-            { "date" : "2026-01-01", "flightsClimbed" : 4, "stepCount" : 8542 }
-          ]
-        }
-        """.utf8)
+        let legacy = Data(
+            """
+            {
+              "year" : 2026,
+              "exportedAt" : "2026-01-03T00:00:00Z",
+              "data" : [
+                { "date" : "2026-01-01", "flightsClimbed" : 4, "stepCount" : 8542 }
+              ]
+            }
+            """.utf8)
         try legacy.write(to: dir.appendingPathComponent("2026.json"))
         let newer = [
             HealthDataPoint(

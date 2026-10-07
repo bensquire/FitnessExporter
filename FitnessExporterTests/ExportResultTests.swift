@@ -1,5 +1,5 @@
-import Testing
 import Foundation
+import Testing
 
 struct ExportErrorTests {
     @Test func messageFromString() {

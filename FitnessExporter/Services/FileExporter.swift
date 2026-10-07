@@ -11,7 +11,8 @@ enum FileExporterError: LocalizedError, Sendable {
         case .readFailed(let detail):
             return "Could not read existing export file: \(detail)"
         case .existingFileCorrupt(let fileName):
-            return "Existing file \(fileName) is not a valid export and was left untouched. Move or delete it and try again."
+            return
+                "Existing file \(fileName) is not a valid export and was left untouched. Move or delete it and try again."
         case .encodingFailed(let detail):
             return "Could not encode export data: \(detail)"
         case .writeFailed(let detail):

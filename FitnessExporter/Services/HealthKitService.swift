@@ -51,7 +51,7 @@ actor HealthKitService {
         HKQuantityType(.flightsClimbed),
         HKQuantityType(.bodyMass),
         HKQuantityType(.activeEnergyBurned),
-        HKQuantityType(.basalEnergyBurned)
+        HKQuantityType(.basalEnergyBurned),
     ]
 
     func requestAuthorization() async throws {
@@ -127,12 +127,15 @@ actor HealthKitService {
     /// energies default to 0 on days without samples, weight is nil.
     func fetchHealthData(lookbackDays: Int) async throws -> [HealthDataPoint] {
         let calendar = Calendar.current
-        let end = calendar.startOfDay(for: Date()) // start of today (exclusive upper bound is tomorrow)
+        let end = calendar.startOfDay(for: Date())  // start of today (exclusive upper bound is tomorrow)
         let endInclusive = calendar.date(byAdding: .day, value: 1, to: end)!
         let start = calendar.date(byAdding: .day, value: -(lookbackDays - 1), to: end)!
 
-        func fetch(_ type: HKQuantityTypeIdentifier, _ unit: HKUnit, _ statistic: DailyStatistic) async throws -> [String: Double] {
-            try await fetchDailyStatistics(type: type, unit: unit, statistic: statistic, start: start, end: endInclusive)
+        func fetch(_ type: HKQuantityTypeIdentifier, _ unit: HKUnit, _ statistic: DailyStatistic) async throws
+            -> [String: Double]
+        {
+            try await fetchDailyStatistics(
+                type: type, unit: unit, statistic: statistic, start: start, end: endInclusive)
         }
 
         async let stepsTask = fetch(.stepCount, .count(), .sum)

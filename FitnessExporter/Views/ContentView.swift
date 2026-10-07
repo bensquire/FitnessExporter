@@ -56,7 +56,8 @@ struct ContentView: View {
                             .keyboardType(.URL)
 
                         if !viewModel.httpURL.isEmpty,
-                           URL(string: viewModel.httpURL)?.scheme != "https" {
+                            URL(string: viewModel.httpURL)?.scheme != "https"
+                        {
                             Label(
                                 "URL must use HTTPS", systemImage: "exclamationmark.triangle.fill"
                             )
