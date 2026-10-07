@@ -11,11 +11,12 @@ DerivedData/
 
 # Build output
 build/
+!.claude/skills/build/
 
 # macOS
 .DS_Store
 .AppleDouble
 .LSOverride
 
-# Claude memory
-.claude/
+# Claude Code's per-machine settings; rules, skills and hooks are shared
+.claude/settings.local.json
